@@ -1,17 +1,18 @@
-README for speech-to-server
-===========================
+# Simple MP3 encoding demo in Javascript
 
-speech-to-server is a demo application for [libmp3lame.js][0].
+Simple demo using [libmp3lame.js](https://github.com/akrennmair/libmp3lame-js), based on [speech-to-server](https://github.com/akrennmair/gspeech-to-server) by Andreas Krennmair.
 
-[0]: https://github.com/akrennmair/libmp3lame-js
+Still too slow to be practical for [dancehack.com](http://www.dancehack.com/) or the [HTML5 Audio Editor](http://plucked.de/), but it's a start.
 
-License
--------
+## Usage
 
-See file LICENSE for further information.
+I didn't want to deal with MagicWorker and the large compiled file, so:
 
+- Start a server at the project directory or try the demo at <http://code.garron.us/simple-mp3-js/>
+- Input a file (you can drag-drop onto "Choose File" in Chrome).
+- Wait for short and long versions to render.
 
-Author
-------
+## Caveats
 
-Andreas Krennmair <ak@synflood.at>
+Probably only works in Chrome (maybe Safari), because that's the only audio decoding API I had code ready for.
+
