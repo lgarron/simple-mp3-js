@@ -2,6 +2,43 @@ importScripts('libmp3lame.js');
 
 var mp3codec;
 
+function generateMP3(mp3codec, data) {
+
+	var len = data.length;
+	var rate = 44100; // TODO: Whee, hardcoding!
+
+	var chunkFrac = 8;
+	var CHUNK_SIZE = rate/chunkFrac;
+	var encodedParts = [];
+	var more;
+
+	var end = len/CHUNK_SIZE;
+	if (data.endSeconds) {
+		end = data.endSeconds*chunkFrac;
+	}
+
+	for (var i = 0; i < end; i++) {
+		self.postMessage({cmd: 'progress', name: data.name, fraction: i/end});
+
+		//TODO: Handle partial last chunk.
+		var leftChannel = data.left.subarray(i*CHUNK_SIZE, (i+1)*CHUNK_SIZE);
+		var rightChannel = data.right.subarray(i*CHUNK_SIZE, (i+1)*CHUNK_SIZE);
+
+		more = Lame.encode_buffer_ieee_float(mp3codec, leftChannel, rightChannel);
+		encodedParts.push(more.data);
+	}
+
+	more = Lame.encode_flush(mp3codec);
+	encodedParts.push(more.data);
+
+	Lame.close(mp3codec);
+	mp3codec = null;
+
+	var blob = new Blob(encodedParts);
+	var URL = webkitURL.createObjectURL(blob);
+	self.postMessage({cmd: 'done', name: data.name, url: URL});
+}
+
 self.onmessage = function(e) {
 	switch (e.data.cmd) {
 	case 'init':
@@ -16,14 +53,9 @@ self.onmessage = function(e) {
 		Lame.init_params(mp3codec);
 		break;
 	case 'encode':
-		var mp3data = Lame.encode_buffer_ieee_float(mp3codec, e.data.buf, e.data.buf);
-		self.postMessage({cmd: 'data', buf: mp3data.data});
-		break;
-	case 'finish':
-		var mp3data = Lame.encode_flush(mp3codec);
-		self.postMessage({cmd: 'end', buf: mp3data.data});
-		Lame.close(mp3codec);
-		mp3codec = null;
+
+		generateMP3(mp3codec, e.data);
+
 		break;
 	}
 };
